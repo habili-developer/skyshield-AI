@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - LLM_PROVIDER=mock
+      - API_KEY=${API_KEY:-}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///data/skyshield.db}
+      - SKYSHIELD_MODE=${SKYSHIELD_MODE:-demo}
+      - REGION_CONFIG_PATH=${REGION_CONFIG_PATH:-configs/regions/dodoma.json}
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - SKYSHIELD_API_BASE=http://backend:8000
+      - SKYSHIELD_API_KEY=${API_KEY:-}
+    depends_on:
+      - backend

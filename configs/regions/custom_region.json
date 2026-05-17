@@ -1,0 +1,19 @@
+{
+  "deployment_name": "Custom Operational Region",
+  "map_center": { "lat": 0.0, "lon": 0.0 },
+  "operational_radius_km": 25,
+  "restricted_zones": [
+    {
+      "id": "custom-core",
+      "name": "Custom Core",
+      "center": { "lat": 0.0, "lon": 0.0 },
+      "radius_km": 25,
+      "classification": "restricted_monitoring"
+    }
+  ],
+  "geofences": [],
+  "coordinate_metadata": {
+    "crs": "EPSG:4326",
+    "notes": "Edit this file for deployment-specific coordinates."
+  }
+}
