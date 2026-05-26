@@ -1,7 +1,11 @@
 import { Kalman2D } from "./kalman";
 
-export const DODOMA: [number, number] = [35.7384, -6.1748];
-export const PROTECTED_RADIUS_KM = 8;
+// Configurable protected location (default: Dodoma for demo)
+export const PROTECTED_LOCATION: [number, number] = [35.7384, -6.1748];
+export const PROTECTED_RADIUS_KM = 2.5;
+
+// Legacy alias for compatibility
+export const DODOMA = PROTECTED_LOCATION;
 
 export type ThreatLevel = "GREEN" | "YELLOW" | "ORANGE" | "RED";
 
@@ -41,9 +45,9 @@ function rand(a: number, b: number) { return a + Math.random() * (b - a); }
 export function spawnTrack(): Track {
   const bearing = rand(0, Math.PI * 2);
   const distDeg = 0.12 + Math.random() * 0.05; // ~13km out
-  const trueLng = DODOMA[0] + Math.cos(bearing) * distDeg;
-  const trueLat = DODOMA[1] + Math.sin(bearing) * distDeg;
-  // velocity toward Dodoma
+  const trueLng = PROTECTED_LOCATION[0] + Math.cos(bearing) * distDeg;
+  const trueLat = PROTECTED_LOCATION[1] + Math.sin(bearing) * distDeg;
+  // velocity toward protected location
   const speed = rand(0.0006, 0.0014);
   const vLng = -Math.cos(bearing) * speed;
   const vLat = -Math.sin(bearing) * speed;
@@ -76,7 +80,7 @@ export function haversineKm(a: [number, number], b: [number, number]) {
 }
 
 export function classify(track: Track): ThreatLevel {
-  const d = haversineKm([track.trueLng, track.trueLat], DODOMA);
+  const d = haversineKm([track.trueLng, track.trueLat], PROTECTED_LOCATION);
   if (d < PROTECTED_RADIUS_KM * 0.5) return "RED";
   if (d < PROTECTED_RADIUS_KM * 0.75) return "ORANGE";
   if (d < PROTECTED_RADIUS_KM) return "YELLOW";
@@ -84,7 +88,7 @@ export function classify(track: Track): ThreatLevel {
 }
 
 export function getTrackDistanceKm(track: Track): number {
-  return haversineKm([track.kf.x[0], track.kf.x[1]], DODOMA);
+  return haversineKm([track.kf.x[0], track.kf.x[1]], PROTECTED_LOCATION);
 }
 
 export function getTrackEtaSeconds(track: Track): number {

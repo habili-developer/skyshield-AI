@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type * as MaplibreNs from "maplibre-gl";
 import type { Track } from "@/lib/simulation";
 import {
-  DODOMA,
+  PROTECTED_LOCATION,
   PROTECTED_RADIUS_KM,
   formatEta,
   getTrackEtaSeconds,
@@ -40,20 +40,26 @@ const TRACK_VISUALS = {
 } as const;
 
 const MAP_STYLE: MaplibreNs.StyleSpecification = {
-  version: 8,
-  sources: {
-    tactical: {
-      type: "raster",
-      tiles: [
+  "version": 8,
+  "sources": {
+    "osm": {
+      "type": "raster",
+      "tiles": [
         "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
         "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-        "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
       ],
-      tileSize: 256,
-      attribution: "",
-    },
+      "tileSize": 256,
+      "attribution": "© OpenStreetMap © CARTO"
+    }
   },
-  layers: [{ id: "tactical-base", type: "raster", source: "tactical" }],
+  "layers": [
+    {
+      "id": "osm",
+      "type": "raster",
+      "source": "osm"
+    }
+  ]
 };
 
 function circle(center: [number, number], radiusKm: number, steps = 64) {
@@ -108,14 +114,18 @@ export function MapView({ tracks, tick }: Props) {
         const container = await waitForSizedContainer();
         if (cancelled || !container) return;
 
+        console.log("MAP CONTAINER SIZE:", container.clientWidth, container.clientHeight);
+
         const map = new maplibregl.Map({
           container,
           style: MAP_STYLE,
-          center: DODOMA,
+          center: PROTECTED_LOCATION,
           zoom: 11.5,
           pitch: 22,
           bearing: -8,
         });
+
+        console.log("MAP CREATED", map);
 
         const resizeMap = () => {
           requestAnimationFrame(() => {
@@ -132,12 +142,15 @@ export function MapView({ tracks, tick }: Props) {
         });
 
         map.on("load", () => {
+          console.log("MAP LOADED");
+          map.resize();
+          setReady(true);
           map.addSource("inner-zone", {
             type: "geojson",
             data: {
               type: "Feature",
               properties: {},
-              geometry: { type: "Polygon", coordinates: [circle(DODOMA, PROTECTED_RADIUS_KM * 0.5)] },
+              geometry: { type: "Polygon", coordinates: [circle(PROTECTED_LOCATION, PROTECTED_RADIUS_KM * 0.5)] },
             },
           });
           map.addLayer({
@@ -158,7 +171,7 @@ export function MapView({ tracks, tick }: Props) {
             data: {
               type: "Feature",
               properties: {},
-              geometry: { type: "Polygon", coordinates: [circle(DODOMA, PROTECTED_RADIUS_KM)] },
+              geometry: { type: "Polygon", coordinates: [circle(PROTECTED_LOCATION, PROTECTED_RADIUS_KM)] },
             },
           });
           map.addLayer({
@@ -249,7 +262,7 @@ export function MapView({ tracks, tick }: Props) {
 
           map.addSource("center", {
             type: "geojson",
-            data: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: DODOMA } },
+            data: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: PROTECTED_LOCATION } },
           });
           map.addLayer({
             id: "center-glow",
@@ -386,9 +399,9 @@ export function MapView({ tracks, tick }: Props) {
     const map = mapRef.current;
     if (!map || !ready) return;
 
-    const centerPoint = map.project(DODOMA);
-    const outerPoint = map.project([DODOMA[0] + kmToLngDegrees(PROTECTED_RADIUS_KM, DODOMA[1]), DODOMA[1]]);
-    const innerPoint = map.project([DODOMA[0] + kmToLngDegrees(PROTECTED_RADIUS_KM * 0.5, DODOMA[1]), DODOMA[1]]);
+    const centerPoint = map.project(PROTECTED_LOCATION);
+    const outerPoint = map.project([PROTECTED_LOCATION[0] + kmToLngDegrees(PROTECTED_RADIUS_KM, PROTECTED_LOCATION[1]), PROTECTED_LOCATION[1]]);
+    const innerPoint = map.project([PROTECTED_LOCATION[0] + kmToLngDegrees(PROTECTED_RADIUS_KM * 0.5, PROTECTED_LOCATION[1]), PROTECTED_LOCATION[1]]);
 
     setZoneOverlay({
       x: centerPoint.x,
@@ -430,12 +443,11 @@ export function MapView({ tracks, tick }: Props) {
     tracks.find((track) => track.level === "ORANGE") ??
     tracks.find((track) => track.level === "YELLOW");
   const breachForecast = breachTrack?.kf.forecast(4, 1)[3];
-  const breachDistance = breachForecast ? haversineKm(breachForecast, DODOMA) : null;
+  const breachDistance = breachForecast ? haversineKm(breachForecast, PROTECTED_LOCATION) : null;
 
   return (
-    <div className="relative h-full min-h-[300px] overflow-hidden bg-black">
-      <div ref={containerRef} className="absolute inset-0 z-0" />
-      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.05)_40%,rgba(0,0,0,0.55)_100%)]" />
+    <div className="relative h-full min-h-[300px] overflow-hidden">
+      <div ref={containerRef} className="absolute inset-0 z-0 w-full h-full" />
       {!ready && !failed && (
         <div className="absolute inset-0 z-20 flex items-center justify-center font-mono text-xs text-muted-foreground">
           ◤ INITIALIZING TACTICAL OVERLAY... ◥
@@ -446,8 +458,6 @@ export function MapView({ tracks, tick }: Props) {
           ◤ MAP RENDER RECOVERY ACTIVE ◥
         </div>
       )}
-      <div className="pointer-events-none absolute inset-0 z-20 hud-grid opacity-15" />
-      <div className="pointer-events-none absolute inset-0 z-20 scanline opacity-30" />
       <div className="pointer-events-none absolute inset-0 z-20">
         {zoneOverlay.outerRadius > 0 ? (
           <>
@@ -616,16 +626,13 @@ export function MapView({ tracks, tick }: Props) {
           ))}
         </div>
         <div className="absolute bottom-4 right-24 font-mono text-[10px] text-muted-foreground">2 km</div>
-        <div className="absolute left-1/2 top-1/2 -translate-x-[42%] -translate-y-1/2 text-[34px] font-bold tracking-[0.08em] text-white/10">
-          DODOMA
-        </div>
         <div className="absolute left-[27%] top-[45%] font-mono text-[13px] text-threat-yellow">
           <div className="font-semibold">RESTRICTED ZONE</div>
-          <div>8KM RADIUS</div>
+          <div>2.5KM RADIUS</div>
         </div>
         <div className="absolute left-[46%] top-[49%] -translate-x-1/2 font-mono text-[13px] text-threat-red">
           <div className="font-semibold">RESTRICTED CORE</div>
-          <div>4KM RADIUS</div>
+          <div>1.25KM RADIUS</div>
         </div>
       </div>
     </div>
