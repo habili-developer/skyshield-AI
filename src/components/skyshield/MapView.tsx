@@ -33,7 +33,9 @@ export function MapView({ tracks }: Props) {
     if (!containerRef.current || mapRef.current) return;
 
     (async () => {
+      console.log("[MapView] importing maplibre-gl…");
       const maplibregl = (await import("maplibre-gl")).default;
+      console.log("[MapView] maplibre loaded", !!maplibregl, "container?", !!containerRef.current);
       if (cancelled || !containerRef.current) return;
 
       const map = new maplibregl.Map({
@@ -44,8 +46,11 @@ export function MapView({ tracks }: Props) {
         pitch: 55,
         bearing: -18,
       });
+      map.on("error", (e) => console.error("[MapView] map error", e));
+      map.on("styledata", () => console.log("[MapView] styledata"));
 
       map.on("load", () => {
+        console.log("[MapView] map loaded");
         const layers = map.getStyle().layers || [];
         const labelLayer = layers.find(
           (l) => l.type === "symbol" && (l.layout as any)?.["text-field"]
