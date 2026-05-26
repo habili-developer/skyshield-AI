@@ -40,31 +40,31 @@
 :root {
   --radius: 0.25rem;
   /* Defense console - dark */
-  --background: oklch(0.14 0.01 250);
-  --foreground: oklch(0.96 0.005 250);
-  --card: oklch(0.18 0.012 250);
-  --card-foreground: oklch(0.96 0.005 250);
-  --popover: oklch(0.18 0.012 250);
-  --popover-foreground: oklch(0.96 0.005 250);
+  --background: oklch(0.10 0.02 240);
+  --foreground: oklch(0.98 0.005 240);
+  --card: oklch(0.14 0.02 240);
+  --card-foreground: oklch(0.98 0.005 240);
+  --popover: oklch(0.14 0.02 240);
+  --popover-foreground: oklch(0.98 0.005 240);
   --primary: oklch(0.65 0.22 25);
-  --primary-foreground: oklch(0.98 0.005 250);
-  --secondary: oklch(0.22 0.015 250);
-  --secondary-foreground: oklch(0.96 0.005 250);
-  --muted: oklch(0.22 0.015 250);
-  --muted-foreground: oklch(0.62 0.02 250);
-  --accent: oklch(0.28 0.02 250);
-  --accent-foreground: oklch(0.96 0.005 250);
+  --primary-foreground: oklch(0.98 0.005 240);
+  --secondary: oklch(0.18 0.02 240);
+  --secondary-foreground: oklch(0.98 0.005 240);
+  --muted: oklch(0.18 0.02 240);
+  --muted-foreground: oklch(0.65 0.03 240);
+  --accent: oklch(0.24 0.03 240);
+  --accent-foreground: oklch(0.98 0.005 240);
   --destructive: oklch(0.65 0.24 25);
-  --destructive-foreground: oklch(0.98 0.005 250);
-  --border: oklch(0.26 0.015 250);
-  --input: oklch(0.22 0.015 250);
+  --destructive-foreground: oklch(0.98 0.005 240);
+  --border: oklch(0.24 0.03 240);
+  --input: oklch(0.18 0.02 240);
   --ring: oklch(0.55 0.2 25);
 
-  --panel: oklch(0.16 0.012 250);
-  --panel-border: oklch(0.26 0.018 250);
-  --threat-red: oklch(0.62 0.24 25);
-  --threat-yellow: oklch(0.82 0.17 85);
-  --threat-green: oklch(0.72 0.18 145);
+  --panel: oklch(0.12 0.02 240);
+  --panel-border: oklch(0.24 0.03 240);
+  --threat-red: oklch(0.65 0.26 20);
+  --threat-yellow: oklch(0.85 0.18 80);
+  --threat-green: oklch(0.75 0.20 140);
 }
 
 .dark { color-scheme: dark; }
@@ -75,17 +75,24 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
     -webkit-font-smoothing: antialiased;
+    letter-spacing: 0.02em;
   }
 }
 
-/* Scanline / HUD overlay */
+/* Enhanced Scanline / HUD overlay */
 .hud-grid {
   background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--threat-red) 8%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--threat-red) 8%, transparent) 1px, transparent 1px);
-  background-size: 32px 32px;
+    linear-gradient(to right, color-mix(in oklab, var(--threat-red) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--threat-red) 10%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: grid-float 20s linear infinite;
+}
+
+@keyframes grid-float {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
 }
 
 .scanline::after {
@@ -94,26 +101,97 @@
   background: repeating-linear-gradient(
     to bottom,
     transparent 0px,
-    transparent 3px,
-    color-mix(in oklab, var(--threat-red) 4%, transparent) 4px
+    transparent 2px,
+    color-mix(in oklab, var(--threat-red) 6%, transparent) 3px
   );
   pointer-events: none;
   mix-blend-mode: overlay;
+  animation: scanline-move 8s linear infinite;
+}
+
+@keyframes scanline-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100px; }
 }
 
 @keyframes pulse-ring {
   0% { transform: scale(0.6); opacity: 0.9; }
-  100% { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
 }
 .pulse-ring {
-  animation: pulse-ring 2s ease-out infinite;
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+@keyframes zone-pulse-red {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.35; }
+}
+.zone-pulse-red {
+  animation: zone-pulse-red 3s ease-in-out infinite;
+}
+
+@keyframes zone-pulse-yellow {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 0.2; }
+}
+.zone-pulse-yellow {
+  animation: zone-pulse-yellow 4s ease-in-out infinite;
+}
+
+@keyframes zone-ring-slow {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.4; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+}
+.zone-ring-slow {
+  animation: zone-ring-slow 6s ease-in-out infinite;
+}
+
+@keyframes zone-ring-fast {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+  50% { transform: translate(-50%, -50%) scale(1.12); opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+}
+.zone-ring-fast {
+  animation: zone-ring-fast 3s ease-in-out infinite;
+}
+
+@keyframes tactical-radar-cone {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+.tactical-radar-cone {
+  background: conic-gradient(from 0deg,
+    transparent 0deg,
+    color-mix(in oklab, var(--threat-red) 35%, transparent) 45deg,
+    transparent 90deg);
+  animation: tactical-radar-cone 4s linear infinite;
+  border-radius: 50%;
+}
+
+@keyframes tactical-track-pulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(var(--pulse-scale, 1.2)); opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.tactical-track-pulse {
+  animation: tactical-track-pulse var(--pulse-duration, 2s) ease-in-out infinite;
+}
+
+@keyframes radar-status-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.radar-status-sweep {
+  animation: radar-status-sweep 2.5s linear infinite;
+  transform-origin: bottom center;
 }
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50% { opacity: 0.2; }
 }
-.blink { animation: blink 1.2s ease-in-out infinite; }
+.blink { animation: blink 1s ease-in-out infinite; }
 
 @keyframes sweep {
   from { transform: rotate(0deg); }
@@ -122,11 +200,40 @@
 .radar-sweep {
   background: conic-gradient(from 0deg,
     transparent 0deg,
-    color-mix(in oklab, var(--threat-red) 35%, transparent) 30deg,
-    transparent 60deg);
-  animation: sweep 4s linear infinite;
+    color-mix(in oklab, var(--threat-red) 45%, transparent) 40deg,
+    transparent 80deg);
+  animation: sweep 3s linear infinite;
+}
+
+/* Breathing effect */
+@keyframes breathe {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+.breathe { animation: breathe 2.5s ease-in-out infinite; }
+
+/* Glow effects */
+.glow-red {
+  box-shadow: 0 0 10px color-mix(in oklab, var(--threat-red) 60%, transparent),
+              0 0 20px color-mix(in oklab, var(--threat-red) 40%, transparent);
+}
+.glow-yellow {
+  box-shadow: 0 0 10px color-mix(in oklab, var(--threat-yellow) 60%, transparent),
+              0 0 20px color-mix(in oklab, var(--threat-yellow) 40%, transparent);
+}
+.glow-green {
+  box-shadow: 0 0 10px color-mix(in oklab, var(--threat-green) 60%, transparent),
+              0 0 20px color-mix(in oklab, var(--threat-green) 40%, transparent);
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: color-mix(in oklab, var(--panel) 90%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* MapLibre overrides for dark HUD */
 .maplibregl-ctrl-attrib { display: none !important; }
 .maplibregl-canvas:focus { outline: none; }
+

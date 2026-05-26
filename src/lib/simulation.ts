@@ -3,7 +3,7 @@ import { Kalman2D } from "./kalman";
 export const DODOMA: [number, number] = [35.7384, -6.1748];
 export const PROTECTED_RADIUS_KM = 8;
 
-export type ThreatLevel = "GREEN" | "YELLOW" | "RED";
+export type ThreatLevel = "GREEN" | "YELLOW" | "ORANGE" | "RED";
 
 export interface Track {
   id: string;
@@ -78,8 +78,34 @@ export function haversineKm(a: [number, number], b: [number, number]) {
 export function classify(track: Track): ThreatLevel {
   const d = haversineKm([track.trueLng, track.trueLat], DODOMA);
   if (d < PROTECTED_RADIUS_KM * 0.5) return "RED";
+  if (d < PROTECTED_RADIUS_KM * 0.75) return "ORANGE";
   if (d < PROTECTED_RADIUS_KM) return "YELLOW";
   return "GREEN";
+}
+
+export function getTrackDistanceKm(track: Track): number {
+  return haversineKm([track.kf.x[0], track.kf.x[1]], DODOMA);
+}
+
+export function getTrackEtaSeconds(track: Track): number {
+  const speedKmh = Math.max(track.speedKts * 1.852, 1);
+  return Math.max(5, Math.round((getTrackDistanceKm(track) / speedKmh) * 3600));
+}
+
+export function formatEta(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `00:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+}
+
+export function getTrackConfidence(track: Track): number {
+  const idNum = Number.parseInt(track.id.replace(/\D/g, ""), 10) || 1;
+  const typeBias =
+    track.type === "UNKNOWN" ? -6 :
+    track.type === "UAV" ? 4 :
+    track.type === "ROTOR" ? 1 : 3;
+  const rcsBias = Math.round((1.4 - Math.min(track.rcs, 1.4)) * 12);
+  return Math.max(58, Math.min(99, 68 + (idNum % 17) + typeBias + rcsBias));
 }
 
 export function stepTrack(t: Track, dtMs: number) {
