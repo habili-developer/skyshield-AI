@@ -1,7 +1,10 @@
-import { useEffect, useRef } from "react";
-import maplibregl from "maplibre-gl";
+import { useEffect, useRef, useState } from "react";
+import type MaplibreNs from "maplibre-gl";
 import type { Track } from "@/lib/simulation";
 import { DODOMA, PROTECTED_RADIUS_KM } from "@/lib/simulation";
+
+type MaplibreModule = typeof MaplibreNs;
+
 
 interface Props {
   tracks: Track[];
