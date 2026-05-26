@@ -15,15 +15,21 @@ services:
       - DATABASE_URL=${DATABASE_URL:-sqlite:///data/skyshield.db}
       - SKYSHIELD_MODE=${SKYSHIELD_MODE:-demo}
       - REGION_CONFIG_PATH=${REGION_CONFIG_PATH:-configs/regions/dodoma.json}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
-  dashboard:
+  frontend:
     build:
       context: .
-      dockerfile: Dockerfile.dashboard
+      dockerfile: Dockerfile.frontend
     ports:
-      - "8501:8501"
-    environment:
-      - SKYSHIELD_API_BASE=http://backend:8000
-      - SKYSHIELD_API_KEY=${API_KEY:-}
+      - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    environment:
+      - VITE_API_BASE_URL=http://backend:8000
