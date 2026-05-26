@@ -1,7 +1,12 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "installCommand": "npm install",
   "build": {
     "env": {
       "PYTHON_VERSION": "3.11"
     }
-  }
+  },
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD . vercel.json package.json vite.config.ts"
 }
