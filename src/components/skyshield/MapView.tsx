@@ -34,7 +34,6 @@ export function MapView({ tracks }: Props) {
 
     (async () => {
       const maplibregl = (await import("maplibre-gl")).default;
-      await import("maplibre-gl/dist/maplibre-gl.css");
       if (cancelled || !containerRef.current) return;
 
       const map = new maplibregl.Map({
