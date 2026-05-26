@@ -35,7 +35,6 @@ export function MapView({ tracks }: Props) {
       zoom: 12,
       pitch: 55,
       bearing: -18,
-      antialias: true,
     });
 
     map.on("load", () => {
