@@ -33,6 +33,7 @@ function Dashboard() {
   const [auto, setAuto] = useState(true);
   const [stats, setStats] = useState({ cpu: 14.2, mem: 2.4, latency: 12 });
   const tickRef = useRef(0);
+  const eventCounterRef = useRef(0);
 
   const initializeScene = () => {
     const seededTracks = Array.from({ length: 7 }, () => spawnTrack());
@@ -103,6 +104,7 @@ function Dashboard() {
 
       setEvents((prevEvents) => {
         const now = Date.now();
+        eventCounterRef.current += 1;
         const criticalTrack =
           next.find((track) => track.level === "RED") ??
           next.find((track) => track.level === "ORANGE") ??
@@ -111,25 +113,25 @@ function Dashboard() {
 
         const event =
           !criticalTrack ? {
-            id: `${now}-scan-clear`,
+            id: `evt-${eventCounterRef.current}-scan-clear`,
             ts: now,
             code: "INFO" as const,
             body: "Sector sweep complete. No active threat vectors approaching the core.",
           } :
           criticalTrack.level === "RED" ? {
-            id: `${now}-${criticalTrack.id}-breach`,
+            id: `evt-${eventCounterRef.current}-${criticalTrack.id}-breach`,
             ts: now,
             code: "ALERT" as const,
             body: `${criticalTrack.callsign} predicted breach in ${formatEta(getTrackEtaSeconds(criticalTrack))}. Immediate intercept coordination required.`,
           } :
           criticalTrack.level === "ORANGE" ? {
-            id: `${now}-${criticalTrack.id}-rf`,
+            id: `evt-${eventCounterRef.current}-${criticalTrack.id}-rf`,
             ts: now,
             code: "WARNING" as const,
             body: `RF anomaly detected on ${criticalTrack.callsign}. Heading changed toward restricted core.`,
           } :
           {
-            id: `${now}-${criticalTrack.id}-track`,
+            id: `evt-${eventCounterRef.current}-${criticalTrack.id}-track`,
             ts: now,
             code: "INFO" as const,
             body: `Outbound traffic ${criticalTrack.callsign} updated. Kalman path refreshed for sector monitoring.`,
