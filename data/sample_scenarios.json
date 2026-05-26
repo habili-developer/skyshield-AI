@@ -1,0 +1,298 @@
+{
+  "restricted_zone": {
+    "center": {
+      "lat": -6.1749,
+      "lon": 35.7382
+    },
+    "radius_km": 1.2
+  },
+  "scenarios": {
+    "normal": {
+      "description": "Authorized helicopter transit outside the restricted zone.",
+      "frames": [
+        {
+          "targets": [
+            {
+              "id": "AC-101",
+              "callsign": "AUTH-101",
+              "lat": -6.188,
+              "lon": 35.702,
+              "altitude_m": 420,
+              "heading_deg": 75,
+              "speed_mps": 52,
+              "transponder": true,
+              "rf_signature": "known",
+              "camera_label": "helicopter",
+              "thermal": 0.72,
+              "hovering": false,
+              "maneuvering": false,
+              "acoustic_intensity": 0.67
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "AC-101",
+              "callsign": "AUTH-101",
+              "lat": -6.186,
+              "lon": 35.7095,
+              "altitude_m": 418,
+              "heading_deg": 76,
+              "speed_mps": 53,
+              "transponder": true,
+              "rf_signature": "known",
+              "camera_label": "helicopter",
+              "thermal": 0.72,
+              "hovering": false,
+              "maneuvering": false,
+              "acoustic_intensity": 0.68
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "AC-101",
+              "callsign": "AUTH-101",
+              "lat": -6.184,
+              "lon": 35.7165,
+              "altitude_m": 421,
+              "heading_deg": 75,
+              "speed_mps": 54,
+              "transponder": true,
+              "rf_signature": "known",
+              "camera_label": "helicopter",
+              "thermal": 0.71,
+              "hovering": false,
+              "maneuvering": false,
+              "acoustic_intensity": 0.66
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "AC-101",
+              "callsign": "AUTH-101",
+              "lat": -6.182,
+              "lon": 35.7235,
+              "altitude_m": 419,
+              "heading_deg": 74,
+              "speed_mps": 53,
+              "transponder": true,
+              "rf_signature": "known",
+              "camera_label": "helicopter",
+              "thermal": 0.71,
+              "hovering": false,
+              "maneuvering": false,
+              "acoustic_intensity": 0.65
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "AC-101",
+              "callsign": "AUTH-101",
+              "lat": -6.18,
+              "lon": 35.7305,
+              "altitude_m": 417,
+              "heading_deg": 75,
+              "speed_mps": 52,
+              "transponder": true,
+              "rf_signature": "known",
+              "camera_label": "helicopter",
+              "thermal": 0.72,
+              "hovering": false,
+              "maneuvering": false,
+              "acoustic_intensity": 0.64
+            }
+          ]
+        }
+      ]
+    },
+    "suspicious": {
+      "description": "Unidentified small UAS making irregular turns near the protected area.",
+      "frames": [
+        {
+          "targets": [
+            {
+              "id": "UAS-202",
+              "lat": -6.192,
+              "lon": 35.727,
+              "altitude_m": 140,
+              "heading_deg": 45,
+              "speed_mps": 14,
+              "transponder": false,
+              "rf_signature": "unknown",
+              "camera_label": "small_uas",
+              "thermal": 0.58,
+              "hovering": false,
+              "maneuvering": false,
+              "acoustic_intensity": 0.55
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "UAS-202",
+              "lat": -6.188,
+              "lon": 35.731,
+              "altitude_m": 135,
+              "heading_deg": 60,
+              "speed_mps": 13,
+              "transponder": false,
+              "rf_signature": "unknown",
+              "camera_label": "small_uas",
+              "thermal": 0.57,
+              "hovering": false,
+              "maneuvering": true,
+              "acoustic_intensity": 0.57
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "UAS-202",
+              "lat": -6.1848,
+              "lon": 35.735,
+              "altitude_m": 128,
+              "heading_deg": 110,
+              "speed_mps": 11,
+              "transponder": false,
+              "rf_signature": "unknown",
+              "camera_label": "small_uas",
+              "thermal": 0.56,
+              "hovering": false,
+              "maneuvering": true,
+              "acoustic_intensity": 0.58
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "UAS-202",
+              "lat": -6.1815,
+              "lon": 35.739,
+              "altitude_m": 120,
+              "heading_deg": 175,
+              "speed_mps": 7,
+              "transponder": false,
+              "rf_signature": "unknown",
+              "camera_label": "small_uas",
+              "thermal": 0.55,
+              "hovering": true,
+              "maneuvering": true,
+              "acoustic_intensity": 0.6
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "UAS-202",
+              "lat": -6.1808,
+              "lon": 35.742,
+              "altitude_m": 118,
+              "heading_deg": 220,
+              "speed_mps": 6,
+              "transponder": false,
+              "rf_signature": "unknown",
+              "camera_label": "small_uas",
+              "thermal": 0.54,
+              "hovering": true,
+              "maneuvering": true,
+              "acoustic_intensity": 0.61
+            }
+          ]
+        }
+      ]
+    },
+    "restricted_intrusion": {
+      "description": "Slide 6: Radar detection -> RF anomaly -> No visual match -> AI escalation -> Zone violation.",
+      "frames": [
+        {
+          "targets": [
+            {
+              "id": "INTR-RED",
+              "lat": -6.195,
+              "lon": 35.725,
+              "altitude_m": 150,
+              "heading_deg": 45,
+              "speed_mps": 12,
+              "sensors": ["radar"]
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "INTR-RED",
+              "lat": -6.190,
+              "lon": 35.730,
+              "altitude_m": 145,
+              "heading_deg": 45,
+              "speed_mps": 12,
+              "rf_signature": "unknown",
+              "sensors": ["radar", "rf"]
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "INTR-RED",
+              "lat": -6.185,
+              "lon": 35.734,
+              "altitude_m": 135,
+              "heading_deg": 50,
+              "speed_mps": 11,
+              "rf_signature": "unknown",
+              "camera_label": "unidentified_airframe",
+              "sensors": ["radar", "rf", "camera"]
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "INTR-RED",
+              "lat": -6.180,
+              "lon": 35.737,
+              "altitude_m": 110,
+              "heading_deg": 60,
+              "speed_mps": 10,
+              "rf_signature": "unknown",
+              "camera_label": "unidentified_airframe",
+              "thermal": 0.65,
+              "acoustic_intensity": 0.62,
+              "sensors": ["radar", "rf", "camera", "thermal", "acoustic"]
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "id": "INTR-RED",
+              "lat": -6.1749,
+              "lon": 35.7382,
+              "altitude_m": 85,
+              "heading_deg": 70,
+              "speed_mps": 8,
+              "rf_signature": "unknown",
+              "camera_label": "unidentified_airframe",
+              "thermal": 0.68,
+              "acoustic_intensity": 0.65,
+              "hovering": true,
+              "sensors": ["radar", "rf", "camera", "thermal", "acoustic"]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

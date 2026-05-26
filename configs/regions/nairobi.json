@@ -1,0 +1,20 @@
+{
+  "deployment_name": "Nairobi Metropolitan Airspace",
+  "map_center": { "lat": -1.2921, "lon": 36.8219 },
+  "operational_radius_km": 70,
+  "restricted_zones": [
+    {
+      "id": "nairobi-metro-core",
+      "name": "Nairobi Metro Core",
+      "center": { "lat": -1.2921, "lon": 36.8219 },
+      "radius_km": 70,
+      "classification": "restricted_monitoring"
+    }
+  ],
+  "geofences": [],
+  "coordinate_metadata": {
+    "crs": "EPSG:4326",
+    "country": "Kenya",
+    "timezone": "Africa/Nairobi"
+  }
+}

@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: skyshield
+      POSTGRES_PASSWORD: skyshield
+      POSTGRES_DB: skyshield
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skyshield"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      SKYSHIELD_MODE: operational
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      API_KEY: ${API_KEY:-}
+      DATABASE_URL: postgresql+psycopg://skyshield:skyshield@postgres:5432/skyshield
+      REGION_CONFIG_PATH: ${REGION_CONFIG_PATH:-configs/regions/dodoma.json}
+      ENABLE_CORS: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      SKYSHIELD_API_BASE: http://backend:8000
+      SKYSHIELD_API_KEY: ${API_KEY:-}
+    depends_on:
+      - backend
+
+volumes:
+  postgres-data:

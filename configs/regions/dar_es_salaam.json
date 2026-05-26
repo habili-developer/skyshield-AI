@@ -1,0 +1,20 @@
+{
+  "deployment_name": "Dar es Salaam Coastal Shield",
+  "map_center": { "lat": -6.7924, "lon": 39.2083 },
+  "operational_radius_km": 65,
+  "restricted_zones": [
+    {
+      "id": "dar-coastal-core",
+      "name": "Dar es Salaam Coastal Core",
+      "center": { "lat": -6.7924, "lon": 39.2083 },
+      "radius_km": 65,
+      "classification": "restricted_monitoring"
+    }
+  ],
+  "geofences": [],
+  "coordinate_metadata": {
+    "crs": "EPSG:4326",
+    "country": "Tanzania",
+    "timezone": "Africa/Dar_es_Salaam"
+  }
+}
