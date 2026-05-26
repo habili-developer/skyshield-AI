@@ -124,6 +124,10 @@ def create_app() -> FastAPI:
     app.state.settings = settings
     app.include_router(router)
 
+    @app.get("/health")
+    async def health_check():
+        return {"status": "ok"}
+
     @app.websocket("/ws")
     async def websocket_endpoint(websocket: WebSocket):
         ws_manager: ConnectionManager = app.state.services["ws_manager"]
