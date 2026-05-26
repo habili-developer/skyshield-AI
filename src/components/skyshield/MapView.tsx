@@ -5,6 +5,7 @@ import { DODOMA, PROTECTED_RADIUS_KM } from "@/lib/simulation";
 
 type MapT = MaplibreNs.Map;
 type GeoJSONSourceT = MaplibreNs.GeoJSONSource;
+type ResizeObserverT = ResizeObserver | null;
 
 interface Props { tracks: Track[]; }
 
@@ -24,7 +25,9 @@ function circle(center: [number, number], radiusKm: number, steps = 64) {
 export function MapView({ tracks }: Props) {
   const mapRef = useRef<MapT | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const resizeObserverRef = useRef<ResizeObserverT>(null);
   const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   // Init map on client only (dynamic import avoids SSR window crash)
   useEffect(() => {
@@ -33,112 +36,148 @@ export function MapView({ tracks }: Props) {
     if (!containerRef.current || mapRef.current) return;
 
     (async () => {
-      const maplibregl = (await import("maplibre-gl")).default;
-      if (cancelled || !containerRef.current) return;
+      try {
+        const maplibregl = (await import("maplibre-gl")).default;
+        const waitForSizedContainer = async () => {
+          while (!cancelled) {
+            const node = containerRef.current;
+            if (node && node.clientWidth > 0 && node.clientHeight > 0) return node;
+            await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+          }
+          return null;
+        };
 
-      const map = new maplibregl.Map({
-        container: containerRef.current,
-        style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-        center: DODOMA,
-        zoom: 12,
-        pitch: 55,
-        bearing: -18,
-      });
-      map.on("error", (e) => console.error("[MapView]", e.error || e));
+        const container = await waitForSizedContainer();
+        if (cancelled || !container) return;
 
-      map.on("load", () => {
-        const layers = map.getStyle().layers || [];
-        const labelLayer = layers.find(
-          (l) => l.type === "symbol" && (l.layout as any)?.["text-field"]
-        );
-        try {
-          map.addLayer(
-            {
-              id: "3d-buildings",
-              source: "carto",
-              "source-layer": "building",
-              type: "fill-extrusion",
-              minzoom: 12,
-              paint: {
-                "fill-extrusion-color": "#1f2937",
-                "fill-extrusion-height": ["coalesce", ["get", "render_height"], 12],
-                "fill-extrusion-base": 0,
-                "fill-extrusion-opacity": 0.85,
-              },
-            },
-            labelLayer?.id
+        const map = new maplibregl.Map({
+          container,
+          style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+          center: DODOMA,
+          zoom: 12,
+          pitch: 55,
+          bearing: -18,
+          antialias: true,
+        });
+
+        const resizeMap = () => {
+          requestAnimationFrame(() => {
+            if (!cancelled) map.resize();
+          });
+        };
+
+        map.on("error", (e) => {
+          console.error("[MapView]", e.error || e);
+          setFailed(true);
+        });
+
+        map.on("load", () => {
+          const layers = map.getStyle().layers || [];
+          const labelLayer = layers.find(
+            (l) => l.type === "symbol" && (l.layout as any)?.["text-field"]
           );
-        } catch { /* style may lack source layer */ }
+          try {
+            map.addLayer(
+              {
+                id: "3d-buildings",
+                source: "carto",
+                "source-layer": "building",
+                type: "fill-extrusion",
+                minzoom: 12,
+                paint: {
+                  "fill-extrusion-color": "#1f2937",
+                  "fill-extrusion-height": ["coalesce", ["get", "render_height"], 12],
+                  "fill-extrusion-base": 0,
+                  "fill-extrusion-opacity": 0.85,
+                },
+              },
+              labelLayer?.id
+            );
+          } catch { /* style may lack source layer */ }
 
-        map.addSource("zone", {
-          type: "geojson",
-          data: {
-            type: "Feature", properties: {},
-            geometry: { type: "Polygon", coordinates: [circle(DODOMA, PROTECTED_RADIUS_KM)] },
-          },
-        });
-        map.addLayer({
-          id: "zone-fill", type: "fill", source: "zone",
-          paint: { "fill-color": "#ef4444", "fill-opacity": 0.08 },
-        });
-        map.addLayer({
-          id: "zone-line", type: "line", source: "zone",
-          paint: { "line-color": "#ef4444", "line-width": 1.5, "line-dasharray": [3, 3] },
+          map.addSource("zone", {
+            type: "geojson",
+            data: {
+              type: "Feature", properties: {},
+              geometry: { type: "Polygon", coordinates: [circle(DODOMA, PROTECTED_RADIUS_KM)] },
+            },
+          });
+          map.addLayer({
+            id: "zone-fill", type: "fill", source: "zone",
+            paint: { "fill-color": "#ef4444", "fill-opacity": 0.08 },
+          });
+          map.addLayer({
+            id: "zone-line", type: "line", source: "zone",
+            paint: { "line-color": "#ef4444", "line-width": 1.5, "line-dasharray": [3, 3] },
+          });
+
+          map.addSource("tracks", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+          map.addSource("trails", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+          map.addSource("forecasts", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+
+          map.addLayer({
+            id: "trails", type: "line", source: "trails",
+            paint: {
+              "line-color": ["match", ["get", "level"], "RED", "#ef4444", "YELLOW", "#facc15", "#22c55e"],
+              "line-width": 1.5, "line-opacity": 0.7,
+            },
+          });
+          map.addLayer({
+            id: "forecasts", type: "line", source: "forecasts",
+            paint: {
+              "line-color": ["match", ["get", "level"], "RED", "#ef4444", "YELLOW", "#facc15", "#22c55e"],
+              "line-width": 1, "line-opacity": 0.6, "line-dasharray": [2, 2],
+            },
+          });
+          map.addLayer({
+            id: "tracks", type: "circle", source: "tracks",
+            paint: {
+              "circle-radius": 6,
+              "circle-color": ["match", ["get", "level"], "RED", "#ef4444", "YELLOW", "#facc15", "#22c55e"],
+              "circle-stroke-color": "#0a0a0a", "circle-stroke-width": 2,
+            },
+          });
+          map.addLayer({
+            id: "track-labels", type: "symbol", source: "tracks",
+            layout: {
+              "text-field": ["get", "callsign"],
+              "text-size": 10, "text-offset": [0, 1.4],
+              "text-font": ["Open Sans Bold"],
+            },
+            paint: { "text-color": "#e5e7eb", "text-halo-color": "#000000", "text-halo-width": 1.5 },
+          });
+
+          map.addSource("center", {
+            type: "geojson",
+            data: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: DODOMA } },
+          });
+          map.addLayer({
+            id: "center", type: "circle", source: "center",
+            paint: { "circle-radius": 5, "circle-color": "#ef4444", "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 },
+          });
+
+          resizeMap();
+          setFailed(false);
+          setReady(true);
         });
 
-        map.addSource("tracks", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-        map.addSource("trails", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-        map.addSource("forecasts", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+        if (typeof ResizeObserver !== "undefined") {
+          resizeObserverRef.current = new ResizeObserver(() => resizeMap());
+          resizeObserverRef.current.observe(container);
+        }
 
-        map.addLayer({
-          id: "trails", type: "line", source: "trails",
-          paint: {
-            "line-color": ["match", ["get", "level"], "RED", "#ef4444", "YELLOW", "#facc15", "#22c55e"],
-            "line-width": 1.5, "line-opacity": 0.7,
-          },
-        });
-        map.addLayer({
-          id: "forecasts", type: "line", source: "forecasts",
-          paint: {
-            "line-color": ["match", ["get", "level"], "RED", "#ef4444", "YELLOW", "#facc15", "#22c55e"],
-            "line-width": 1, "line-opacity": 0.6, "line-dasharray": [2, 2],
-          },
-        });
-        map.addLayer({
-          id: "tracks", type: "circle", source: "tracks",
-          paint: {
-            "circle-radius": 6,
-            "circle-color": ["match", ["get", "level"], "RED", "#ef4444", "YELLOW", "#facc15", "#22c55e"],
-            "circle-stroke-color": "#0a0a0a", "circle-stroke-width": 2,
-          },
-        });
-        map.addLayer({
-          id: "track-labels", type: "symbol", source: "tracks",
-          layout: {
-            "text-field": ["get", "callsign"],
-            "text-size": 10, "text-offset": [0, 1.4],
-            "text-font": ["Open Sans Bold"],
-          },
-          paint: { "text-color": "#e5e7eb", "text-halo-color": "#000000", "text-halo-width": 1.5 },
-        });
-
-        map.addSource("center", {
-          type: "geojson",
-          data: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: DODOMA } },
-        });
-        map.addLayer({
-          id: "center", type: "circle", source: "center",
-          paint: { "circle-radius": 5, "circle-color": "#ef4444", "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 },
-        });
-
-        setReady(true);
-      });
-
-      mapRef.current = map;
+        resizeMap();
+        mapRef.current = map;
+      } catch (error) {
+        console.error("[MapView] failed to initialize", error);
+        setFailed(true);
+      }
     })();
 
     return () => {
       cancelled = true;
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -184,9 +223,14 @@ export function MapView({ tracks }: Props) {
   return (
     <div className="relative flex-1 min-h-[300px]">
       <div ref={containerRef} className="absolute inset-0 bg-background" />
-      {!ready && (
+      {!ready && !failed && (
         <div className="absolute inset-0 flex items-center justify-center font-mono text-xs text-muted-foreground">
           ◤ INITIALIZING TACTICAL OVERLAY... ◥
+        </div>
+      )}
+      {failed && (
+        <div className="absolute inset-0 flex items-center justify-center font-mono text-xs text-threat-red/80">
+          ◤ MAP RENDER RECOVERY ACTIVE ◥
         </div>
       )}
       <div className="pointer-events-none absolute inset-0 hud-grid opacity-30" />
